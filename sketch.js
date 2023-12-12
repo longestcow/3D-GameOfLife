@@ -1,5 +1,5 @@
 
-let canvasSize = 800, cellSize = 80;
+let canvasSize = 800, cellSize = 40;
 let grid = [],tGrid;
 let _size = canvasSize/cellSize;
 let rules = [[6], [1], 5, 0]; // birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (0=Moore, 1=Von Neumann)
@@ -8,16 +8,13 @@ let cX=_size/2,cY=_size/2,cZ=_size/2;
 let maxDist;
 function setup() {
   frameRate(30);
-  let temp=[];
-  temp=temp.sort();
-  maxDist=temp[temp.length-1];
+  maxDist=distFromCentre(0,0,0);
   for(let i = 0; i<_size; i++){
     grid.push(new Array());
     for(let j = 0; j<_size; j++){
       grid[i].push(new Array());
       for(let k = 0; k<_size; k++){
-        let chance = round(random(1,50))===1;
-        temp.push(distFromCentre(i,j,k));
+        let chance = round(random(1,10))===1;
         grid[i][j].push(new Cell((chance)?rules[2]:0, (chance)?color(255, map(distFromCentre(i,j,k),0,maxDist,0,255), 0):color(0,0,0,0)));
       }
     }
@@ -32,7 +29,7 @@ function setup() {
 function draw() {
   background(220);
   let i,j,k,cCell;
-  tGrid=structuredClone(grid);
+  // tGrid=structuredClone(grid);
   for(let x = 0; x<width; x+=cellSize){
     i=x/cellSize;
     for(let y = 0; y<height; y+=cellSize){
@@ -41,34 +38,34 @@ function draw() {
         k=z/cellSize;
         cCell=grid[i][j][k];
 
-        if(cCell.stage!==0){ //alive
-          if(!rules[0].includes(cCell.neighbourCount)){//did not survive
-            tGrid[i][j][k]=new Cell(rules[2]-1,cCell.color,true);
-          }
+         if(cCell.stage!==0){ //alive
+        //   if(!rules[0].includes(cCell.neighbourCount)){//did not survive
+        //     tGrid[i][j][k]=new Cell(rules[2]-1,cCell.color,true);
+        //   }
           push();
           translate(x,y,z);
           fill(cCell.color);
           box(cellSize);
           pop();
-        }
-        else if(rules[0].includes(cCell.neighbourCount)){
+         }
+        // else if(rules[0].includes(cCell.neighbourCount)){
           
-          tGrid[i][j][k]=new Cell(rules[2],color(random(255),random(255),random(255)));
-        }
-        else {
-          tGrid[i][j][k]=new Cell(0, cCell.color);
-          if(cCell.dying){
-            cCell.dying=false;
-          }
-        }
-        if(cCell.dying){
-          cCell.stage-=cCell.stage===0?0:1;
-        }
+        //   tGrid[i][j][k]=new Cell(rules[2],color(random(255),random(255),random(255)));
+        // }
+        // else {
+        //   tGrid[i][j][k]=new Cell(0, cCell.color);
+        //   if(cCell.dying){
+        //     cCell.dying=false;
+        //   }
+        // }
+        // if(cCell.dying){
+        //   cCell.stage-=cCell.stage===0?0:1;
+        // }
 
       }
     }
   }
-  grid=tGrid;
+  // grid=tGrid;
   orbitControl(2,2,1);
 }
 
@@ -83,8 +80,10 @@ class Cell{
 }
 
 function distFromCentre(x,y,z){
-  return Math.pow((Math.pow(cX - x, 2) + 
-  Math.pow(cY - y, 2) + 
-  Math.pow(cZ - z, 2) * 1.0), 0.5);
+  return Math.sqrt(
+    (x-cX)**2 +
+    (y-cY)**2 +
+    (z-cY)**2
+  );
   
 }
