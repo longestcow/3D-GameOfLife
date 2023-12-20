@@ -3,7 +3,7 @@ let canvasSize = 800, cellSize = 40;
 let grid = [],tGrid;
 let _size = canvasSize/cellSize;
 //let rules = [[1,2,3,4,5,6], [3], [1], true]; // birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (true=Moore, false=Von Neumann)
-let rules = [[1,2,3,4], [3], [1], true]; // birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (true=Moore, false=Von Neumann)
+let rules = [[1,2], [3], [2], true]; // birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (true=Moore, false=Von Neumann)
 let cMode = 1; // color mode (0 = stage, 1=dist from centre)
 let cX=_size/2,cY=_size/2,cZ=_size/2;
 let maxDist;
@@ -21,7 +21,7 @@ function setup() {
       }
     }
   }
-
+//q5js
   
   createCanvas(canvasSize,canvasSize,WEBGL);
   camera(-canvasSize,-canvasSize,-canvasSize);
