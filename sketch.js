@@ -1,13 +1,14 @@
 
 let canvasSize = 1000, cellSize = 40;
-let rules = [[1,6,7,8], [1,2,3,4,5,6], 3, false]; // birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (true=Moore, false=Von Neumann)
+let rules = [[0,1,6,7,8], [0,1,2,3,4,5,6], 5, false]; // birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (true=Moore, false=Von Neumann)
 
 let cMode = 1; // color mode (0 = stage, 1=dist from centre)
 let col1, col2;
 
 let sMode = 0; // 0 == center, 1 == noise
 let centerSize = 1;
-
+let noiseStrength = 0.2; 
+let threshold = 0.6;
 
 let grid = [],neighbours=[];
 let _size = canvasSize/cellSize;
@@ -33,7 +34,12 @@ function setup() {
       grid[i].push(new Array());
       for(let k = 0; k<_size; k++){
         let chance;
-        chance = (abs(i-centre)<=centerSize && abs(j-centre)<=centerSize && abs(k-centre)<=centerSize);
+        if(sMode===0)
+          chance = (abs(i-centre)<=centerSize && abs(j-centre)<=centerSize && abs(k-centre)<=centerSize);
+        else{
+          let noiseValue = noise(i * noiseStrength, j * noiseStrength, k * noiseStrength );
+          chance = (noiseValue > threshold);
+        }
 
         grid[i][j].push(new Cell((chance)?rules[2]:0, lerpColor(col2,col1,map(distFromCentre(i,j,k),0,distFromCentre(0,0,0),0,1))));
         if(chance)
@@ -44,7 +50,7 @@ function setup() {
 
   
   createCanvas(canvasSize,canvasSize,WEBGL);
-  camera(-canvasSize,-canvasSize,-canvasSize);
+  camera(-canvasSize*2,-canvasSize,-canvasSize);
   strokeWeight(0);
   
 }
