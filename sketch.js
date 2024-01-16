@@ -5,10 +5,10 @@ let rules = [[2,3,4,5,6], [1,2,3,4,5], 10, true];// birthNeighbour, survivalNeig
 let cMode; // color mode (stage based, dist from centre)
 let col1, col2;
 
-let sMode=0; // start mode 0 == center, 1 == noise
-let centerSize = 2;
-let noiseStrength = 0.03; 
-let threshold = 0.6;
+let sMode; // start mode 0 == center, 1 == noise
+let centerSize = 2, centerSizeInput;
+let noiseStrength = 0.03, noiseStrengthInput; 
+let threshold = 0.6, thresholdInput;
 
 let grid = [],neighbours=[];
 let _size = canvasSize/cellSize,centre=_size/2;
@@ -35,7 +35,15 @@ function setup() {
   col1 = createColorPicker(color(255,0,0)); col1.position(1090,125);
   col2 = createColorPicker(color(0,0,255)); col2.position(1140,125);
 
+  sMode=createSelect(); sMode.option("Center"); sMode.option("Noise"); sMode.selected("Center"); sMode.position(1020, 170);
+  centerSizeInput = createInput("2"); centerSizeInput.position(1105, 195); centerSizeInput.size(25); 
+  let centerSizeText = createP("Center Size: "); centerSizeText.position(1020, 180);
+  noiseStrengthInput = createInput("0.03"); noiseStrengthInput.position(1125, 215); noiseStrengthInput.size(30); 
+  let noiseStrengthText = createP("Noise Strength: "); noiseStrengthText.position(1020, 200);
+  thresholdInput = createInput("0.6"); thresholdInput.position(1095, 235); thresholdInput.size(30); 
+  let thresholdText = createP("Threshold: "); thresholdText.position(1020, 220);
 
+  
 
   createCanvas(canvasSize,canvasSize,WEBGL);
   initArrays();
@@ -100,6 +108,10 @@ function initArrays(){
   cellSize=cSizeSlider.value();
   _size = canvasSize/cellSize,centre=_size/2;
 
+  centerSize=int(centerSizeInput.value())-1;
+  noiseStrength=float(noiseStrengthInput.value());
+  // threshold=float(thresholdInput.value());
+
   neighbours=[];
   grid=[];
   let cCell;
@@ -121,7 +133,7 @@ function initArrays(){
       grid[i].push(new Array());
       for(let k = 0; k<_size; k++){
         let chance;
-        if(sMode===0)
+        if(sMode.value()==="Center")
           chance = (abs(i-centre)<=centerSize && abs(j-centre)<=centerSize && abs(k-centre)<=centerSize);
         else{
           let noiseValue = noise(i * noiseStrength + r, j * noiseStrength + r, k * noiseStrength + r);
