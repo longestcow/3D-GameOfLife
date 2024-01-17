@@ -1,6 +1,5 @@
 
 let canvasSize = 1000, cellSize=50, changeCellSize, cSizeSlider, fpsButton, fpsSlider;
-let rules = [[2,3,4,5,6], [1,2,3,4,5], 10, true];// birthNeighbour, survivalNeighbour, deathFadeRate, neighbourMode (true=Moore, false=Von Neumann)
 
 let cMode; // color mode (stage based, dist from centre)
 let col1, col2;
@@ -16,6 +15,8 @@ let _size = canvasSize/cellSize,centre=_size/2;
 let paused = false;
 let pause,reset,nstep;
 
+let birth, survival, fadeRate, nMode, fadeRateText;
+
 function setup() {
   document.body.style.zoom=0.9; //a bit of the canvas was falling below the screen so im just manually zooming out at the start
   frameRate(24);
@@ -30,12 +31,13 @@ function setup() {
   reset = createButton("⟳"); reset.mousePressed(initArrays); reset.position(1060,80);
   nstep = createButton("⏩︎"); nstep.mousePressed(stepFunction);  nstep.position(1100,80);
 
-  cMode=createSelect(); cMode.option("Stage"); cMode.option("Depth"); cMode.selected("Depth"); cMode.position(1020, 130);
-  
-  col1 = createColorPicker(color(255,0,0)); col1.position(1090,125);
-  col2 = createColorPicker(color(0,0,255)); col2.position(1140,125);
+  let cModeText=createP("Color-mode: ");cModeText.position(1020, 114);
+  cMode=createSelect(); cMode.option("Stage"); cMode.option("Depth"); cMode.selected("Depth"); cMode.position(1110, 130);
+  col1 = createColorPicker(color(255,0,0)); col1.position(1180,125);
+  col2 = createColorPicker(color(0,0,255)); col2.position(1230,125);
 
-  sMode=createSelect(); sMode.option("Center"); sMode.option("Noise"); sMode.selected("Center"); sMode.position(1020, 170);
+  let sModeText=createP("Starting-state: "); sModeText.position(1020, 155);
+  sMode=createSelect(); sMode.option("Center"); sMode.option("Noise"); sMode.selected("Center"); sMode.position(1120, 170);
   centerSizeInput = createInput("2"); centerSizeInput.position(1105, 195); centerSizeInput.size(25); 
   let centerSizeText = createP("Center Size: "); centerSizeText.position(1020, 180);
   noiseStrengthInput = createInput("0.03"); noiseStrengthInput.position(1125, 215); noiseStrengthInput.size(30); 
@@ -43,7 +45,18 @@ function setup() {
   thresholdInput = createInput("0.6"); thresholdInput.position(1095, 235); thresholdInput.size(30); 
   let thresholdText = createP("Threshold: "); thresholdText.position(1020, 220);
 
+  birth = createInput("1"); birth.position(1070, 290); birth.size(100); 
+  let birthText = createP("Birth: "); birthText.position(1020,275);
+
+  survival = createInput("1"); survival.position(1090, 315); survival.size(100); 
+  let survivalText = createP("Survival: "); survivalText.position(1020,300);
+
+  fadeRate = createSlider(1,100,10,1); fadeRate.position(1110, 340);
+  fadeRateText = createP("Fade-rate: "+fadeRate.value()); fadeRateText.position(1020,325); 
   
+  let nModeText = createP("Neighbour-mode: "); nModeText.position(1020,350);
+  nMode = createSelect(); nMode.option("Moore"); nMode.option("Von Neumann"); nMode.selected("Von Neumann"); nMode.position(1140, 365)
+
 
   createCanvas(canvasSize,canvasSize,WEBGL);
   initArrays();
@@ -57,6 +70,7 @@ function draw() {
     step(); 
   changeCellSize.html("Size - "+cSizeSlider.value());
   fpsButton.html("FPS - "+fpsSlider.value());
+  fadeRateText.html("Fade-rate: "+fadeRate.value());
   orbitControl(2,2,1);
 }
 
@@ -83,15 +97,15 @@ function step(){
         let n = neighbours[i][j][k];
         
         if(cCell.stage!==0){ //alive
-          if(cCell.stage!==rules[2] || !rules[1].includes(n)){//alive stays/starts dying
+          if(cCell.stage!==fadeRate.value() || !survival.value().includes(n)){//alive stays/starts dying
             tGrid[i][j][k]=new Cell(cCell.stage-1, cCell.color);
             if(cCell.stage-1==0)updateNeighbours(tNeighbours,i,j,k,false);//alive becomes dead
           }
-          else if(rules[1].includes(n))//alive stays alive
+          else if(survival.value().includes(n))//alive stays alive
             tGrid[i][j][k]=new Cell(cCell.stage, cCell.color);
         }
-        else if(rules[0].includes(n)){//dead becomes alive
-          tGrid[i][j][k]=new Cell(rules[2], cCell.color);
+        else if(birth.value().includes(n)){//dead becomes alive
+          tGrid[i][j][k]=new Cell(fadeRate.value(), cCell.color);
           updateNeighbours(tNeighbours,i,j,k,true);
         }
         else //dead stays dead
@@ -140,7 +154,7 @@ function initArrays(){
           chance = (noiseValue > threshold);
         }
 
-        grid[i][j].push(new Cell((chance)?rules[2]:0, lerpColor(col2.color(),col1.color(),map(distFromCentre(i,j,k),0,distFromCentre(0,0,0),0,1))));
+        grid[i][j].push(new Cell((chance)?fadeRate.value():0, lerpColor(col2.color(),col1.color(),map(distFromCentre(i,j,k),0,distFromCentre(0,0,0),0,1))));
         cCell=grid[i][j][k];
         if(chance){
           updateNeighbours(neighbours,i,j,k,true);
@@ -176,7 +190,7 @@ class Cell{
 
   updateColor(i,j,k) {//only for stage
     if(cMode.selected()==="Stage")
-      this.color = lerpColor(col2.color(),col1.color(),map(this.stage,0,rules[2],0,1));
+      this.color = lerpColor(col2.color(),col1.color(),map(this.stage,0,fadeRate.value(),0,1));
     else
       this.color = lerpColor(col2.color(),col1.color(),map(distFromCentre(i,j,k),0,distFromCentre(0,0,0),0,1));
 
@@ -195,7 +209,7 @@ function updateNeighbours(neighb,x,y,z,alive){
   for(let i = -1; i<=1; i++){
     for(let j = -1; j<=1; j++){
       for(let k = -1; k<=1; k++){
-        if(!rules[3] && (abs(i)+abs(j)+abs(k)>1))continue; //von neumann
+        if(nMode.selected()!=="Moore" && (abs(i)+abs(j)+abs(k)>1))continue; //von neumann
         if(i==0 && j==0 && k==0)continue;//self state
         try{
           neighb[x+i][y+j][z+k]+=(alive)?1:-1;
